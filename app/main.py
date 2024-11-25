@@ -22,6 +22,8 @@ def main():
 
             response = create_response()
 
+            request = conn.recv(1024)
+
             conn.sendall(response)
         except Exception as e:
             print(f"{e}")
