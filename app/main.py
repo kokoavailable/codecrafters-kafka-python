@@ -14,14 +14,19 @@ def main():
     # Uncomment this to pass the first stage
     #
     server = socket.create_server(("localhost", 9092), reuse_port=True)
-    conn, addr = server.accept() # wait for client
+    
+    
+    while True:
+        try:
+            conn, addr = server.accept() # wait for client
 
-    response = create_response()
+            response = create_response()
 
-    conn.sendall(response)
-
-    conn.close()
-    server.close()
+            conn.sendall(response)
+        except Exception as e:
+            print(f"{e}")
+        finally:
+            conn.close()
 
 
 
