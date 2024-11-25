@@ -4,7 +4,7 @@ import struct
 def create_response():
     message_size = 4
     correlation_id = 7
-    return struct.pack(">ii")
+    return struct.pack(">ii", message_size, correlation_id)
 
 def main():
     # You can use print statements as follows for debugging,
