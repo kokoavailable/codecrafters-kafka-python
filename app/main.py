@@ -1,5 +1,10 @@
 import socket  # noqa: F401
+import struct
 
+def create_response():
+    message_size = 4
+    correlation_id = 7
+    return struct.pack(">ii")
 
 def main():
     # You can use print statements as follows for debugging,
@@ -9,7 +14,16 @@ def main():
     # Uncomment this to pass the first stage
     #
     server = socket.create_server(("localhost", 9092), reuse_port=True)
-    server.accept() # wait for client
+    conn, addr = server.accept() # wait for client
+
+    response = create_response()
+
+    conn.sendall(response)
+
+    conn.close()
+    server.close()
+
+
 
 
 if __name__ == "__main__":
