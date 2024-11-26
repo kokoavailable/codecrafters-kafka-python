@@ -8,7 +8,7 @@ def create_response(request):
     correlation_id = struct.unpack(">i", request[8:12])[0] # int32
 
     # body
-    error_code = 0
+    error_code = 0 if api_version in [0, 1, 2, 3, 4] else 35
     api_key = 18
     min_version, max_version = 0, 4
     throttle_time_ms = 0
