@@ -25,9 +25,9 @@ def create_response(request):
     body += struct.pack(">i", throttle_time_ms)
 
     response_message_size = len(body) + 4
-    # header = struct.pack(">ii", response_message_size, correlation_id)
+    header = struct.pack(">ii", response_message_size, correlation_id)
     
-    response = body
+    response = header + body
 
     print(f"Response (Hex): {response.hex()}")
     return response
