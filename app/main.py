@@ -18,13 +18,12 @@ def create_response(request):
         
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
     body += struct.pack(">i", len(api_versions)) #api_version count
-
     for api in api_versions:
         body += struct.pack(">hhh", api["api_key"], api["min_version"], api["max_version"])  # 빈 TAG_BUFFER 추가
 
     body += struct.pack(">i", throttle_time_ms)
 
-    response_message_size = len(body) + 8
+    response_message_size = len(body) + 4
     header = struct.pack(">ii", response_message_size, correlation_id)
     
     response = header + body
