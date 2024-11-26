@@ -14,21 +14,21 @@ def create_response(request):
         {"api_key": 18, "min_version": 0, "max_version": 4}
         ]
     throttle_time_ms = 0
-
+    tag_buffer = b''
         
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
-    body += struct.pack(">i", len(api_versions)) #api_version count
+    # body += struct.pack(">i", len(api_versions)) #api_version count
+
     for api in api_versions:
-        body += struct.pack(">hhh", api["api_key"], api["min_version"], api["max_version"])  # 빈 TAG_BUFFER 추가
+        body += struct.pack(">hhhh", api["api_key"], api["min_version"], api["max_version"], tag_buffer)
 
     body += struct.pack(">i", throttle_time_ms)
+    body += struct.pack(">i", throttle_time_ms)
 
-    response_message_size = len(body) + 4
+    response_message_size = len(body) + 8
     header = struct.pack(">ii", response_message_size, correlation_id)
     
     response = header + body
-
-    print(f"Calculated size: {response_message_size}, Actual size: {len(response)}")
 
     print(f"Response (Hex): {response.hex()}")
     return response
