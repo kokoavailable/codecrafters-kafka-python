@@ -17,7 +17,7 @@ def create_response(request):
 
         
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
-    # body += struct.pack(">i", len(api_versions)) #api_version count
+    body += struct.pack(">i", len(api_versions)) #api_version count
 
     for api in api_versions:
         body += struct.pack(">hhh", api["api_key"], api["min_version"], api["max_version"])  # 빈 TAG_BUFFER 추가
