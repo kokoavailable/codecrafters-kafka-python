@@ -11,7 +11,7 @@ def create_response(request):
     error_code = 0
     if api_key == 18:
         api_versions = [
-        {"api_key": api_key, "min_version": 0, "max_version": 4}
+        {"api_key": 18, "min_version": 0, "max_version": 4}
         ]
     throttle_time_ms = 0
     tag_buffer = b''
@@ -29,6 +29,9 @@ def create_response(request):
     response_message_size = len(body) + 8
     header = struct.pack(">ii", response_message_size, correlation_id)
     
+    response = header + body
+
+    print(f"Response (Hex): {response.hex()}")
     return header + body
 
 def parse_apiversioncall(request):
