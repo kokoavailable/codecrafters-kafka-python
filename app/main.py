@@ -9,23 +9,20 @@ def create_response(request):
 
     # body
     error_code = 0
-    if api_key == 18:
-        api_versions = [
-        {"api_key": 18, "min_version": 0, "max_version": 4}
-        ]
+    api_key = 18
+    min_version, max_version = 0, 4
     throttle_time_ms = 0
-    number_api_keys = len(api_versions)
-        
+    tag_buffer = b"\x00"
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
-    body += struct.pack(">B", number_api_keys) #api_version count
-    for api in api_versions:
-        body += struct.pack(">hhh", api["api_key"], api["min_version"], api["max_version"])
+    body += struct.pack(">B", 2) #api_version count
+    body += struct.pack(">hhh", api_key, min_version, max_version)
     body += struct.pack(">B", 0)
     body += struct.pack(">i", throttle_time_ms)
     body += struct.pack(">B", 0)
 
-    response_message_size = len(body) + 4
-    header = struct.pack(">ii", response_message_size, correlation_id)
+    response_message_size = len(body) + len(correlation_id)
+    header = struct.pack(">i", response_message_size)
+    header += struct.pack(">i", correlation_id)
     
     response = header + body
 
