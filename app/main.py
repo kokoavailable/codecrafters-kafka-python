@@ -26,7 +26,7 @@ def create_response(request):
 
 
     response_message_size = len(body) + 4
-    header = struct.pack(">ii", response_message_size, correlation_id)
+    header = struct.pack(">i", correlation_id)
     
     response = header + body
 
