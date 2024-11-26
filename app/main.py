@@ -29,6 +29,8 @@ def create_response(request):
     
     response = header + body
 
+    print(f"Calculated size: {response_message_size}, Actual size: {len(response)}")
+
     print(f"Response (Hex): {response.hex()}")
     return response
 
