@@ -14,16 +14,15 @@ def create_response(request):
         {"api_key": 18, "min_version": 0, "max_version": 4}
         ]
     throttle_time_ms = 0
-    tag_buffer = 0
     number_api_keys = len(api_versions)
         
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
     body += struct.pack(">B", number_api_keys) #api_version count
     for api in api_versions:
         body += struct.pack(">hhh", api["api_key"], api["min_version"], api["max_version"])
-    body += struct.pack(">B", tag_buffer)
+    body += struct.pack(">B", 0)
     body += struct.pack(">i", throttle_time_ms)
-    body += struct.pack(">B", tag_buffer)
+    body += struct.pack(">B", 0)
 
     response_message_size = len(body) + 4
     header = struct.pack(">ii", response_message_size, correlation_id)
