@@ -20,7 +20,7 @@ def create_response(request):
     body += struct.pack(">i", throttle_time_ms)
     body += struct.pack(">B", 0)
 
-    response_message_size = len(body) + len(correlation_id)
+    response_message_size = len(body) + 4
     header = struct.pack(">i", response_message_size)
     header += struct.pack(">i", correlation_id)
     
