@@ -2,12 +2,53 @@ import socket  # noqa: F401
 import struct
 
 def create_response(request):
-    message_size = struct.unpack(">i" , request[:4])[0]
-    correlation_id = struct.unpack(">i", request[8:12])[0]
-    error_code = 35
+    message_size = struct.unpack(">i", request[:4])[0]
+    api_key = struct.unpack(">h", request[4:6])[0] # int16
+    api_version = struct.unpack(">h", request[6:8])[0] # int16
+    correlation_id = struct.unpack(">i", request[8:12])[0] # int32
 
-    response_message_size = 4
-    return struct.pack(">iih", response_message_size, correlation_id, error_code)
+    # body
+    error_code = 0
+    if api_key == 18:
+        api_versions = [
+        {"api_key": api_key, "min_version": 0, "max_version": 4}
+        ]
+    throttle_time_ms = 0
+    tag_buffer = b''
+        
+    body = struct.pack(">h", error_code)  # error_code: 2 bytes
+    body += struct.pack(">i", len(api_versions)) #api_version count
+
+    for api in api_versions:
+        body += struct.pack(">hhh", api["api_key"], api["min_version"], api["max_version"])
+        body += tag_buffer  # 빈 TAG_BUFFER 추가
+
+    body += struct.pack(">i", throttle_time_ms)
+    body += tag_buffer
+
+    response_message_size = len(body) + 8
+    header = struct.pack(">ii", response_message_size, correlation_id)
+    
+    return header + body
+
+def parse_apiversioncall(request):
+    offset = 12 # body
+
+    client_id_length = struct.unpack(">h", request[offset:offset+2])[0]
+    offset += 2
+    client_id = request[offset:offset+client_id_length].decode("utf-8")
+    offset += client_id_length
+
+    client_software_name_length = struct.unpack(">h", request[offset:offset+2])[0]
+    offset += 2
+    client_software_name = request[offset:offset+client_software_name_length].decode("utf-8")
+    offset += client_software_name_length
+
+    client_software_version_length = struct.unpack(">h", request[offset:offset+2])[0]
+    offset += 2
+    client_software_version = request[offset:offset+client_software_version_length].decode("utf-8")
+    offset += client_software_version_length
+
 
 
 def main():
