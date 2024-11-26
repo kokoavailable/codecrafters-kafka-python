@@ -22,10 +22,10 @@ def main():
     while True:
         try:
             conn, addr = server.accept() # wait for client
-
-            response = create_response()
-
+            
             request = conn.recv(1024)
+            
+            response = create_response(request)
 
             conn.sendall(response)
         except Exception as e:
