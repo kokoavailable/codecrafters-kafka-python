@@ -14,7 +14,7 @@ def create_response(request):
         {"api_key": 18, "min_version": 0, "max_version": 4}
         ]
     throttle_time_ms = 0
-    tag_buffer = b''
+    tag_buffer = 0
         
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
     # body += struct.pack(">i", len(api_versions)) #api_version count
