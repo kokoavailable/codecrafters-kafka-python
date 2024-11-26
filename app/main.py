@@ -14,14 +14,14 @@ def create_response(request):
         {"api_key": 18, "min_version": 0, "max_version": 4}
         ]
     throttle_time_ms = 0
-    tag_buffer = b''
+    
         
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
     # body += struct.pack(">i", len(api_versions)) #api_version count
 
     for api in api_versions:
         body += struct.pack(">hhh", api["api_key"], api["min_version"], api["max_version"])
-        body += tag_buffer  # 빈 TAG_BUFFER 추가
+          # 빈 TAG_BUFFER 추가
 
     body += struct.pack(">i", throttle_time_ms)
     body += tag_buffer
@@ -32,25 +32,7 @@ def create_response(request):
     response = header + body
 
     print(f"Response (Hex): {response.hex()}")
-    return header + body
-
-def parse_apiversioncall(request):
-    offset = 12 # body
-
-    client_id_length = struct.unpack(">h", request[offset:offset+2])[0]
-    offset += 2
-    client_id = request[offset:offset+client_id_length].decode("utf-8")
-    offset += client_id_length
-
-    client_software_name_length = struct.unpack(">h", request[offset:offset+2])[0]
-    offset += 2
-    client_software_name = request[offset:offset+client_software_name_length].decode("utf-8")
-    offset += client_software_name_length
-
-    client_software_version_length = struct.unpack(">h", request[offset:offset+2])[0]
-    offset += 2
-    client_software_version = request[offset:offset+client_software_version_length].decode("utf-8")
-    offset += client_software_version_length
+    return response
 
 
 
