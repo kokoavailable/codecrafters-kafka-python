@@ -4,9 +4,10 @@ import struct
 def create_response(request):
     message_size = struct.unpack(">i" , request[:4])[0]
     correlation_id = struct.unpack(">i", request[8:12])[0]
+    error_code = 35
 
     response_message_size = 4
-    return struct.pack(">ii", response_message_size, correlation_id)
+    return struct.pack(">iih", response_message_size, correlation_id, error_code)
 
 
 def main():
