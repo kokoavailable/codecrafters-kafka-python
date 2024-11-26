@@ -1,10 +1,13 @@
 import socket  # noqa: F401
 import struct
 
-def create_response():
-    message_size = 4
-    correlation_id = 7
-    return struct.pack(">ii", message_size, correlation_id)
+def create_response(request):
+    message_size = struct.unpack(">i" , request[:4])[0]
+    correlation_id = struct.unpack(">i", request[8:12])[0]
+
+    response_message_size = 4
+    return struct.pack(">ii", response_message_size, correlation_id)
+
 
 def main():
     # You can use print statements as follows for debugging,
