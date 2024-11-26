@@ -21,8 +21,9 @@ def create_response(request):
     body += struct.pack(">B", number_api_keys) #api_version count
     for api in api_versions:
         body += struct.pack(">hhh", api["api_key"], api["min_version"], api["max_version"])
-    body += struct.pack(">h", tag_buffer)
     body += struct.pack(">i", throttle_time_ms)
+    body += struct.pack(">h", tag_buffer)
+
 
     response_message_size = len(body) + 4
     header = struct.pack(">ii", response_message_size, correlation_id)
