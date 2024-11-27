@@ -50,18 +50,22 @@ def create_response(request):
 #         conn.close()
 
 async def handle_client(reader, writer):
-    message_size_data = await reader.readexactly(4)
-    message_size = struct.unpack(">i", message_size_data)[0]
-
-    request = await reader.readexactly(message_size)
-
-    response = create_response(request)
-    
-    writer.write(response)
-    await writer.drain()
-
-    writer.close()
-    await writer.wait_closed() 
+    try:
+        message_size_data = await reader.readexactly(4)
+        message_size = struct.unpack(">i", message_size_data)[0]
+        request = await reader.readexactly(message_size)
+        
+        response = create_response(request)
+        writer.write(response)
+        await writer.drain()
+        
+    except asyncio.IncompleteReadError:
+        print(f"Connection closed unexpectedly")
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        writer.close()
+        await writer.wait_closed()
 
 
 async def main():
@@ -73,24 +77,19 @@ async def main():
     #
     
     
-    try:
-        server = await asyncio.start_server(handle_client, "localhost", 9092)
-        # server = socket.create_server(("localhost", 9092), reuse_port=True)
-        # addr = server.sockets[0].getsockname()    
-        async with server:
-            await server.serve_forever()
+    server = await asyncio.start_server(handle_client, "localhost", 9092)
+    # server = socket.create_server(("localhost", 9092), reuse_port=True)
+    # addr = server.sockets[0].getsockname()    
+    async with server:
+        await server.serve_forever()
 
-        # while True:
-        #     conn, addr = server.accept() # wait for client
-        #     request = conn.recv(1024)
-            
-        #     response = create_response(request)
+    # while True:
+    #     conn, addr = server.accept() # wait for client
+    #     request = conn.recv(1024)
+        
+    #     response = create_response(request)
 
-        #     conn.sendall(response)
-    except Exception as e:
-        print(f"{e}")
-    finally:
-        conn.close()
+    #     conn.sendall(response)
 
 
 
