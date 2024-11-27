@@ -38,22 +38,25 @@ def main():
 
     # Uncomment this to pass the first stage
     #
-    server = socket.create_server(("localhost", 9092), reuse_port=True)
     
     
-    while True:
-        try:
-            conn, addr = server.accept() # wait for client
+    try:
+        server = socket.create_server(("localhost", 9092), reuse_port=True)
+    
+        conn, addr = server.accept() # wait for client
+
+        
+        while True:
             
             request = conn.recv(1024)
             
             response = create_response(request)
 
             conn.sendall(response)
-        except Exception as e:
-            print(f"{e}")
-        finally:
-            conn.close()
+    except Exception as e:
+        print(f"{e}")
+    finally:
+        conn.close()
 
 
 
