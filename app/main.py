@@ -3,6 +3,7 @@ import struct
 import asyncio
 
 def create_response(request):
+    print(f"{request.hex()}")
     message_size = struct.unpack(">i", request[:4])[0]
     api_key = struct.unpack(">h", request[4:6])[0] # int16
     api_version = struct.unpack(">h", request[6:8])[0] # int16
