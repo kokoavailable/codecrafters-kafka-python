@@ -66,7 +66,7 @@ def handle_client(conn, addr):
 #         await writer.wait_closed()
 
 
-async def main():
+def main():
     # You can use print statements as follows for debugging,
     # they'll be visible when running tests.
     print("Logs from your program will appear here!")
@@ -89,4 +89,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
+    # asyncio.run(main())
