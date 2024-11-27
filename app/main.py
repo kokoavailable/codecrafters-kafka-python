@@ -1,6 +1,7 @@
 import socket  # noqa: F401
 import struct
 import asyncio
+import threading
 
 def create_response(request):
     print(f"{request.hex()}")
@@ -84,7 +85,9 @@ def main():
     while True:
         conn, addr = server.accept() # wait for client
         handle_client(conn, addr)
-
+        
+        client_thread = threading.Thread(target=handle_client, args=(conn, addr))
+        client_thread.start()
 
 
 
