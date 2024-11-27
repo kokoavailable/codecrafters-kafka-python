@@ -75,7 +75,7 @@ def main():
     #
     
     
-    server = await asyncio.start_server(handle_client, "localhost", 9092)
+    # server = await asyncio.start_server(handle_client, "localhost", 9092)
     server = socket.create_server(("localhost", 9092), reuse_port=True)
     # addr = server.sockets[0].getsockname()    
     # async with server:
