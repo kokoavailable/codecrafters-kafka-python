@@ -5,10 +5,9 @@ import threading
 
 def create_response(request):
     print(f"{request.hex()}")
-    message_size = struct.unpack(">i", request[:4])[0]
-    api_key = struct.unpack(">h", request[4:6])[0] # int16
-    api_version = struct.unpack(">h", request[6:8])[0] # int16
-    correlation_id = struct.unpack(">i", request[8:12])[0] # int32
+    api_key = struct.unpack(">h", request[0:2])[0] # int16
+    api_version = struct.unpack(">h", request[2:4])[0] # int16
+    correlation_id = struct.unpack(">i", request[4:8])[0] # int32
 
     # body
     error_code = 0 if api_version in [0, 1, 2, 3, 4] else 35
