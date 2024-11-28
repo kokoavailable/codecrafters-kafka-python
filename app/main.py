@@ -22,12 +22,11 @@ def create_response(request):
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
     number_api_key = len(api_keys)
     body += struct.pack(">B", number_api_key) #api_version count
-    body += struct.pack(">B", 0)
     for key, (min_version, max_version) in api_keys.items():
         body += struct.pack(">hhh", key, min_version, max_version)
-    body += struct.pack(">B", 0)    
+    body += struct.pack(">B", 0)
     body += struct.pack(">i", throttle_time_ms)
-
+    body += struct.pack(">B", 0)
 
     response_message_size = len(body) + 4
     header = struct.pack(">i", response_message_size)
@@ -39,20 +38,20 @@ def create_response(request):
     print(f"Response (Hex): {response.hex()}")
     return response
 
-def handle_client(conn, addr):
-    print(f"Connected to {addr}")
+# def handle_client(conn, addr):
+#     print(f"Connected to {addr}")
 
-    try:
-        while True:
-            request = conn.recv(1024)
+#     try:
+#         while True:
+#             request = conn.recv(1024)
             
-            response = create_response(request)
+#             response = create_response(request)
 
-            conn.sendall(response)
-    except Exception as e:
-        print(f"{e}")
-    finally:
-        conn.close()
+#             conn.sendall(response)
+#     except Exception as e:
+#         print(f"{e}")
+#     finally:
+#         conn.close()
 
 async def handle_client(reader, writer):
     try:
