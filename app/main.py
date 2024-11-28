@@ -29,7 +29,6 @@ def create_response(request):
         body += struct.pack(">B", 0)
         body += struct.pack(">hhh", key, min_version, max_version)
         body += struct.pack(">B", 0)
-    body += struct.pack(">B", 0)
     body += struct.pack(">i", throttle_time_ms)
     body += struct.pack(">B", 0)
 
