@@ -33,7 +33,7 @@ def create_response(request):
         uuid = "00000000-0000-0000-0000-000000000000"
         is_internal = 0
         partitions_array = 0
-        topic_authorized_operations = 3576
+        topic_authorized_operations = int("00000df8", 16)
         cursor = 255 # null
 
         body = struct.pack(">B", 0)
