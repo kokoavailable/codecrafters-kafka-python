@@ -8,8 +8,8 @@ def parse_describetopic_request(request):
     offset = 10 + length
     contents = request[10:offset].decode("utf-8")
     # buffer = request[offset:offset+1]
-    array_length = request[offset+1:offset+2]
-    topic_name_length = request[offset+2:offset+3]
+    array_length = struct.unpack(">B", request[offset+1:offset+2])[0]
+    topic_name_length = struct.unpack(">B", request[offset+2:offset+3])[0]
     topic_start = offset + 3
     offset = topic_start + topic_name_length - 1
     topic_name = request[topic_start:offset]
