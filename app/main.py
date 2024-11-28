@@ -22,11 +22,12 @@ def create_response(request):
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
     number_api_key = len(api_keys)
     body += struct.pack(">B", number_api_key) #api_version count
+    body += struct.pack(">B", 0)
     for key, (min_version, max_version) in api_keys.items():
         body += struct.pack(">hhh", key, min_version, max_version)
-    body += struct.pack(">B", 0)
+    body += struct.pack(">B", 0)    
     body += struct.pack(">i", throttle_time_ms)
-    body += struct.pack(">B", 0)
+
 
     response_message_size = len(body) + 4
     header = struct.pack(">i", response_message_size)
