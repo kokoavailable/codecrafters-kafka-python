@@ -20,7 +20,7 @@ def create_response(request):
     throttle_time_ms = 0
     tag_buffer = b"\x00"
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
-    number_api_key = len(api_keys)
+    number_api_key = len(api_keys) + 1
     body += struct.pack(">B", number_api_key) #api_version count
     for key, (min_version, max_version) in api_keys.items():
         body += struct.pack(">B", 0)
