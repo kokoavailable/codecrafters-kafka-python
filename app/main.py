@@ -23,8 +23,8 @@ def create_response(request):
     number_api_key = len(api_keys)
     body += struct.pack(">B", number_api_key) #api_version count
     for key, (min_version, max_version) in api_keys.items():
+        body += struct.pack(">B", 0)
         body += struct.pack(">hhh", key, min_version, max_version)
-    body += struct.pack(">B", 0)
     body += struct.pack(">i", throttle_time_ms)
     body += struct.pack(">B", 0)
 
