@@ -27,7 +27,6 @@ def create_response(request):
     
     
     for key, (min_version, max_version) in api_keys.items():
-        body += struct.pack(">B", 0)
         body += struct.pack(">hhh", key, min_version, max_version)
         body += struct.pack(">B", 0)
     body += struct.pack(">i", throttle_time_ms)
