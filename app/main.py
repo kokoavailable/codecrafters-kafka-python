@@ -13,7 +13,7 @@ def create_response(request):
     error_code = 0 if api_version in [0, 1, 2, 3, 4] else 35
     
     api_keys = {18:[0, 4],
-                75:[0, 2]}
+                75:[0, 0]}
     
     # api_key = 18
     # min_version, max_version = 0, 4
