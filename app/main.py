@@ -20,14 +20,13 @@ def create_response(request):
     throttle_time_ms = 0
     tag_buffer = b"\x00"
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
-    num_api_keys = len(api_keys)
-    body += struct.pack(">i", num_api_keys)
-
+    number_api_key = len(api_keys)
+    body += struct.pack(">B", number_api_key) #api_version count
     for key, (min_version, max_version) in api_keys.items():
         body += struct.pack(">hhh", key, min_version, max_version)
-    # body += struct.pack(">B", 0)
+    body += struct.pack(">B", 0)
     body += struct.pack(">i", throttle_time_ms)
-    # body += struct.pack(">B", 0)
+    body += struct.pack(">B", 0)
 
     response_message_size = len(body) + 4
     header = struct.pack(">i", response_message_size)
