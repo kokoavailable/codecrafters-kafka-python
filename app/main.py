@@ -11,13 +11,19 @@ def create_response(request):
 
     # body
     error_code = 0 if api_version in [0, 1, 2, 3, 4] else 35
+    
+    api_keys = {18:[0, 4],
+                75:[0, 2]}
+    
     api_key = 18
     min_version, max_version = 0, 4
     throttle_time_ms = 0
     tag_buffer = b"\x00"
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
-    body += struct.pack(">B", 2) #api_version count
-    body += struct.pack(">hhh", api_key, min_version, max_version)
+    num_api_keys = len(api_keys)
+    body += struct.pack(">i", num_api_keys)
+    for key, (min_version, max_version) in api_keys.items():
+        body += struct.pack(">hhh", key, min_version, max_version)
     body += struct.pack(">B", 0)
     body += struct.pack(">i", throttle_time_ms)
     body += struct.pack(">B", 0)
