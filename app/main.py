@@ -47,9 +47,9 @@ def create_response(request):
         body += struct.pack(">B", topic_name_length)
         body += struct.pack(">B", partitions_array + 1)
         body += struct.pack(">i", topic_authorized_operations)
-        body = struct.pack(">B", 0)
-        body = struct.pack(">B", cursor)
-        body = struct.pack(">B", 0)
+        body += struct.pack(">B", 0)
+        body += struct.pack(">B", cursor)
+        body += struct.pack(">B", 0)
 
 
 
