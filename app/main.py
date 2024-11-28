@@ -12,7 +12,7 @@ def parse_describetopic_request(request):
     topic_name_length = struct.unpack(">B", request[offset+2:offset+3])[0]
     topic_start = offset + 3
     offset = topic_start + topic_name_length - 1
-    topic_name = request[topic_start:offset]
+    topic_name = request[topic_start:offset].decode("utf-8")
     # buffer = request[offset:offset+1]
     partition_limit = request[offset+1:offset+5]
     cursor = request[offset+5:offset+6]
