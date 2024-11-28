@@ -15,13 +15,14 @@ def create_response(request):
     api_keys = {18:[0, 4],
                 75:[0, 2]}
     
-    api_key = 18
-    min_version, max_version = 0, 4
+    # api_key = 18
+    # min_version, max_version = 0, 4
     throttle_time_ms = 0
     tag_buffer = b"\x00"
     body = struct.pack(">h", error_code)  # error_code: 2 bytes
     num_api_keys = len(api_keys)
     body += struct.pack(">i", num_api_keys)
+
     for key, (min_version, max_version) in api_keys.items():
         body += struct.pack(">hhh", key, min_version, max_version)
     body += struct.pack(">B", 0)
