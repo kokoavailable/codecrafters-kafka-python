@@ -59,13 +59,16 @@ def create_response(request):
 
 async def handle_client(reader, writer):
     try:
-        message_size_data = await reader.readexactly(4)
-        message_size = struct.unpack(">i", message_size_data)[0]
-        request = await reader.readexactly(message_size)
-        
-        response = create_response(request)
-        writer.write(response)
-        await writer.drain()
+        while True:
+            message_size_data = await reader.readexactly(4)
+            if not message_size_data:
+                break
+            message_size = struct.unpack(">i", message_size_data)[0]
+            request = await reader.readexactly(message_size)
+            
+            response = create_response(request)
+            writer.write(response)
+            await writer.drain()
         
     except asyncio.IncompleteReadError:
         print(f"Connection closed unexpectedly")
