@@ -8,7 +8,7 @@ def parse_describetopic_request(request):
     offset = 10 + length
     contents = request[10:offset].decode("utf-8")
     # buffer = request[offset:offset+1]
-    array_length = struct.unpack(">B", request[offset+1:offset+2])[0]
+    array_length = struct.unpack(">B", request[offset+1:offset+2])[0] - 1
     topic_name_length = struct.unpack(">B", request[offset+2:offset+3])[0] - 1
     topic_start = offset + 3
     offset = topic_start + topic_name_length - 1
@@ -38,10 +38,10 @@ def create_response(request):
 
         body = struct.pack(">B", 0)
         body += struct.pack(">i", throttle_time_ms)
-        body += struct.pack(">B", array_length)
+        body += struct.pack(">B", array_length + 1)
         body += struct.pack(">h", error_code)
 
-        body += struct.pack(">B", topic_name_length) # topicname
+        body += struct.pack(">B", topic_name_length + 1) # topicname
         body += topic_name.encode("utf-8") # contents
         body += bytes.fromhex(uuid.replace("-", "")) # topic id
         body += struct.pack(">B", is_internal)
