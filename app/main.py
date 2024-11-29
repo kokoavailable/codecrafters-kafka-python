@@ -41,7 +41,7 @@ def create_response(request):
         body += struct.pack(">B", array_length + 1)
         body += struct.pack(">h", error_code)
 
-        body += struct.pack(">B", topic_name_length + 1) # topicname
+        body += struct.pack(">B", topic_name_length + 2) # topicname
         body += topic_name.encode("utf-8") # contents
         body += bytes.fromhex(uuid.replace("-", "")) # topic id
         body += struct.pack(">B", is_internal)
