@@ -38,7 +38,7 @@ def create_response(request):
 
         body = struct.pack(">B", 0)
         body += struct.pack(">i", throttle_time_ms)
-        body += struct.pack(">B", array_length + 1)
+        body += struct.pack(">B", array_length)
         body += struct.pack(">h", error_code)
 
         body += struct.pack(">B", topic_name_length) # topicname
