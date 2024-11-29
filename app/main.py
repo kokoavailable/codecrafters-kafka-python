@@ -15,7 +15,7 @@ def parse_describetopic_request(request):
     topic_name = request[topic_start:offset].decode("utf-8")
     # buffer = request[offset:offset+1]
     partition_limit = request[offset+1:offset+5]
-    cursor = request[offset+5:offset+6]
+    cursor = struct.unpack(">B", request[offset+5:offset+6])
 
     return array_length, topic_name_length, topic_name, partition_limit, cursor
 
