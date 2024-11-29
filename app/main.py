@@ -27,7 +27,7 @@ def create_response(request):
 
 
     if api_key == 75:
-        array_length, topic_name_length, topic_name, partitions_limit, cursor = parse_describetopic_request(request)
+        array_length, topic_name_length, topic_name, partition_limit, cursor = parse_describetopic_request(request)
         throttle_time_ms = 0   
         error_code = 3
         uuid = "00000000-0000-0000-0000-000000000000"
