@@ -29,7 +29,7 @@ def create_response(request):
     if api_key == 75:
         array_length, topic_name_length, topic_name, partition_limit, cursor = parse_describetopic_request(request)
         throttle_time_ms = 0   
-        error_code = 3
+        error_code = 0
         uuid = "00000000-0000-0000-0000-000000000000"
         is_internal = 0
         partitions_array = 0
