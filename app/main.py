@@ -17,7 +17,7 @@ def parse_describetopic_request(request):
     partition_limit = request[offset+1:offset+5]
     cursor = request[offset+5:offset+6]
 
-    return array_length, topic_name_length, topic_name
+    return array_length, topic_name_length, topic_name, partition_limit, cursor
 
 def create_response(request):
     print(f"{request.hex()}")
@@ -27,14 +27,14 @@ def create_response(request):
 
 
     if api_key == 75:
-        array_length, topic_name_length, topic_name = parse_describetopic_request(request)
+        array_length, topic_name_length, topic_name, partitions_limit, cursor = parse_describetopic_request(request)
         throttle_time_ms = 0   
         error_code = 3
         uuid = "00000000-0000-0000-0000-000000000000"
         is_internal = 0
         partitions_array = 0
         topic_authorized_operations = int("00000df8", 16)
-        cursor = 255 # null
+        # cursor = 255 # null
 
         body = struct.pack(">B", 0)
         body += struct.pack(">i", throttle_time_ms)
