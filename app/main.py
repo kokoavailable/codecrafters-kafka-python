@@ -1,18 +1,29 @@
 import socket  # noqa: F401
 import struct
 import asyncio
-import threading
+import os
+import struct
 
-def parse_describetopic_request(request):
+def parse_metadata_log(log_path):
+    impo
+
+def parse_describe_topic_request(request):
+
+    # 리퀘스트 헤더
     length = struct.unpack(">h", request[8:10])[0]
     client_id = request[10:10+length].decode("utf-8")
     offset = 10 + length
+
+    # 토픽 배열 크기 읽기 
     # buffer = request[offset:offset+1]
     array_length = struct.unpack(">B", request[offset+1:offset+2])[0] - 1
     topic_name_length = struct.unpack(">B", request[offset+2:offset+3])[0] - 1
     offset = offset + 3
     topic_name = request[offset:offset + topic_name_length].decode("utf-8")
     offset = offset + topic_name_length
+    
+    # 파티션 리밋, 그리고 커서 
+    
     # buffer = request[offset:offset+1]
     partition_limit = request[offset+1:offset+5]
     cursor = struct.unpack(">B", request[offset+5:offset+6])[0]
@@ -27,9 +38,9 @@ def create_response(request):
 
 
     if api_key == 75:
-        array_length, topic_name_length, topic_name, partition_limit, cursor = parse_describetopic_request(request)
+        array_length, topic_name_length, topic_name, partition_limit, cursor = parse_describe_topic_request(request)
         throttle_time_ms = 0   
-        error_code = 0
+        error_code = 3
         uuid = "00000000-0000-0000-0000-000000000000"
         is_internal = 0
         partitions_array = 0
@@ -108,11 +119,13 @@ async def handle_client(reader, writer):
     try:
         while True:
             message_size_data = await reader.readexactly(4)
-            if not message_size_data:
-                break
             message_size = struct.unpack(">i", message_size_data)[0]
             request = await reader.readexactly(message_size)
+
+            corre
             
+            metadata_log_path = "/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log"
+
             response = create_response(request)
             writer.write(response)
             await writer.drain()
