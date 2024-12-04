@@ -4,8 +4,8 @@ import asyncio
 import os
 import struct
 
-def parse_metadata_log(log_path):
-    impo
+# def parse_metadata_log(log_path):
+#     impo
 
 def parse_describe_topic_request(request):
 
