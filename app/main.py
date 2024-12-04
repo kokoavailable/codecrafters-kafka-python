@@ -121,8 +121,6 @@ async def handle_client(reader, writer):
             message_size_data = await reader.readexactly(4)
             message_size = struct.unpack(">i", message_size_data)[0]
             request = await reader.readexactly(message_size)
-
-            corre
             
             metadata_log_path = "/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log"
 
