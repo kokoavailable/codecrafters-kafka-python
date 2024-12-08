@@ -97,6 +97,32 @@ def parse_record_batch(data, topic_name):
 
     return None
 
+def parse_varint(data):
+    """
+    Parses a variable-length integer (Varint) from the given binary data.
+    
+    Args:
+        data (bytes): The binary data to parse.
+
+    Returns:
+        tuple: (parsed integer, number of bytes consumed)
+    """
+    result = 0
+    shift = 0
+
+    for i, byte in enumerate(data):
+        # 하위 7비트를 결과에 추가
+        result |= (byte & 0x7F) << shift
+
+        # MSB가 0이면 마지막 바이트
+        if (byte & 0x80) == 0:
+            return result, i + 1  # 파싱된 값과 사용한 바이트 수 반환
+
+        # 다음 바이트 처리를 위해 7비트씩 이동
+        shift += 7
+
+    raise ValueError("Varint parsing error: incomplete data")    
+
 
 def parse_record(data):
     """
@@ -104,53 +130,120 @@ def parse_record(data):
     """
     offset = 0
 
-    # Partition Leader Epoch. It is a monotonically increasing number that is incremented by 1 whenever the partition leader changes.
-    partition_leader_epoch = struct.unpack(">i", data[offset:offset + 4])[0]
-    offset += 4
+    # Record Length (varint)
+    record_length, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
 
-    # Magic Byte. This value is used to evolve the record batch format in a backward-compatible way.
-    magic_byte = struct.unpack(">b", data[offset])[0]
+    # Attributes (1 byte)
+    attributes = data[offset]
     offset += 1
 
-    # Attributes.  2-byte big-endian integer indicating the attributes of the record batch.
-    attributes = struct.unpack(">h", data[offset:offset+2])[0]
-    offset += 2
+    # Timestamp Delta (Varint)
+    timestamp_delta, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
 
-    # Last Offset Delta (varint, assume 4 bytes for simplicity)
-    last_offset_delta = struct.unpack(">i", data[offset:offset + 4])[0]
-    offset += 4
+    # Offset Delta (Varint)
+    offset_delta, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
 
-    # Base Timestamp
-    base_timestamp = struct.unpack(">q", data[offset:offset + 8])[0]
-    offset += 8
+    # Key Length (Varint)
+    key_length, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
 
-    # Max Timestamp
-    base_timestamp = struct.unpack(">q", data[offset:offset + 8])[0]
-    offset += 8
+    # Key (nullable, length = key_length bytes)
+    key = None
+    if key_length > 0:
+        key = data[offset:offset + key_length].decode("utf-8")
+        offset += key_length
 
-    # producer_id
-    producer_id = struct.unpack(">q", data[offset:offset + 8])[0]
-    offset += 8
+    # Value Length (Varint)
+    value_length, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
 
-    # producer_epoch
-    producer_epoch = struct.unpack(">h", data[offset:offset + 2])[0]
-    offset += 2
+    # Value (nullable, length = value_length bytes)
+    value = None
+    if value_length > 0:
+        value = parse_value(data[offset:offset + value_length], offset)
+        offset = value["next_offset"]  # Update offset after parsing
 
-    # base_sequence
-    producer_epoch = struct.unpack(">i", data[offset:offset + 4])[0]
-    offset += 4
+    # Headers Array Count (Varint)
+    header_count, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
 
-    # records_length
-    producer_epoch = struct.unpack(">i", data[offset:offset + 4])[0]
-    offset += 4
+    # Skip Headers (if any)
+    for _ in range(header_count):
+        # Header Key Length (Varint)
+        header_key_length, bytes_consumed = parse_varint(data[offset:])
+        offset += bytes_consumed
 
-    topic_name = value  # Assuming the value contains the topic name
-    topic_uuid = "12345678-90ab-cdef-1234-567890abcdef"  # Placeholder for UUID
+        # Header Key
+        offset += header_key_length
+
+        # Header Value Length (Varint)
+        header_value_length, bytes_consumed = parse_varint(data[offset:])
+        offset += bytes_consumed
+
+        # Header Value
+        offset += header_value_length
 
     return {
         "record_length": record_length,
+        "attributes": attributes,
+        "timestamp_delta": timestamp_delta,
+        "offset_delta": offset_delta,
+        "key": key,
+        "value": value,
+        "next_offset": offset  # For parsing the next record
+    }
+
+def parse_value(data, offset=0):
+    """
+    Parses the Value (Topic Record) from the Kafka Record.
+
+    Args:
+        data (bytes): The binary data containing the value.
+        offset (int): The starting offset of the value in the data.
+
+    Returns:
+        dict: Parsed value with details.
+    """
+    # Frame Version (1 byte)
+    frame_version = data[offset]
+    offset += 1
+
+    # Type (1 byte)
+    record_type = data[offset]
+    offset += 1
+
+    # Version (1 byte)
+    record_version = data[offset]
+    offset += 1
+
+    # Name Length (Varint)
+    name_length, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
+
+    # Topic Name (name_length bytes)
+    topic_name = data[offset:offset + name_length].decode("utf-8")
+    offset += name_length
+
+    # Topic UUID (16 bytes)
+    topic_uuid = data[offset:offset + 16].hex()  # Hexadecimal UUID string
+    offset += 16
+
+    # Tagged Fields Count (Varint)
+    tagged_fields_count, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
+
+    # Return parsed value as a dictionary
+    return {
+        "frame_version": frame_version,
+        "type": record_type,
+        "version": record_version,
         "topic_name": topic_name,
-        "topic_uuid": topic_uuid
+        "topic_uuid": topic_uuid,
+        "tagged_fields_count": tagged_fields_count,
+        "next_offset": offset  # For continuing after this value
     }
 
 def parse_header_request(header_request):
