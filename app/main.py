@@ -2,7 +2,7 @@ import socket  # noqa: F401
 import struct
 import asyncio
 import os
-import struct
+import uuid
 
 def parse_metadata_log(log_path, topic_name):
     """
@@ -88,7 +88,7 @@ def parse_record_batch(data, topic_name):
         record = parse_record(data[offset:])
         if record and record["topic_name"] == topic_name:
             return {
-                "uuid": record["topic_uuid"],
+                "uuid": record["value"]["topic_uuid"],
                 "partitions": [{"partition_index": 0, "error_code": 0}]
             }
 
@@ -208,7 +208,7 @@ def parse_value(data, offset=0):
         dict: Parsed value with details.
     """
     # Frame Version (1 byte)
-    frame_version = data[offset]
+    frame_version = struct.unpackdata[offset]
     offset += 1
 
     # Type (1 byte)
@@ -219,17 +219,86 @@ def parse_value(data, offset=0):
     record_version = data[offset]
     offset += 1
 
-    # Name Length (Varint)
-    name_length, bytes_consumed = parse_varint(data[offset:])
-    offset += bytes_consumed
-
-    # Topic Name (name_length bytes)
-    topic_name = data[offset:offset + name_length].decode("utf-8")
-    offset += name_length
+    # Partition ID(4 byte)
+    partition_id = struct.unpack(">i", data[offset:offset + 4])[0] # int32
+    offset += 4
 
     # Topic UUID (16 bytes)
-    topic_uuid = data[offset:offset + 16].hex()  # Hexadecimal UUID string
+    topic_uuid_raw = data[offset:offset + 16]
+    topic_uuid = str(uuid.UUID(bytes=topic_uuid_raw))  # UUID 객체로 변환 후 문자열로 반환
     offset += 16
+
+    # Length of replica array (varint)
+    replica_length, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
+
+    # Replica array(4 byte)
+    replica_array = [] 
+    for _ in range(replica_length - 1):
+        replica_id = struct.unpack(">i", data[offset:offset + 4])[0]  # int32
+        replica_array.append(replica_id)
+        offset += 4
+
+    # Length of In Sync Replica Array (Varint)
+    isr_length, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
+
+    # In Sync Replica Array (4 bytes per replica)
+    isr_array = []
+    for _ in range(isr_length - 1):
+        isr_id = struct.unpack(">i", data[offset:offset + 4])[0]  # int32
+        isr_array.append(isr_id)
+        offset += 4
+
+    # In Sync replica array (4 bytes)
+    isr_array = struct.unpack(">i", data[offset:offset + 4])[0] # int32
+    offset += 4
+
+    # Length of Removing Replicas Array (Varint)
+    removing_length, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
+
+    # Removing Replicas Array (4 bytes per replica)
+    removing_array = []
+    for _ in range(removing_length - 1):
+        removing_id = struct.unpack(">i", data[offset:offset + 4])[0]  # int32
+        removing_array.append(removing_id)
+        offset += 4
+
+    # Length of Adding Replicas Array (Varint)
+    adding_length, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
+
+    # Adding Replicas Array (4 bytes per replica)
+    adding_array = []
+    for _ in range(adding_length - 1):
+        adding_id = struct.unpack(">i", data[offset:offset + 4])[0]  # int32
+        adding_array.append(adding_id)
+        offset += 4
+
+    # Leader (4 bytes)
+    leader = struct.unpack(">i", data[offset:offset + 4])[0]  # int32
+    offset += 4
+
+    # Leader Epoch (4 bytes)
+    leader_epoch = struct.unpack(">i", data[offset:offset + 4])[0]  # int32
+    offset += 4
+
+    # Partition Epoch (4 bytes)
+    partition_epoch = struct.unpack(">i", data[offset:offset + 4])[0]  # int32
+    offset += 4
+
+    # Length of Directories Array (Varint)
+    directories_length, bytes_consumed = parse_varint(data[offset:])
+    offset += bytes_consumed
+
+    # Directories Array (Variable length strings)
+    directories_array = []
+    for _ in range(directories_length - 1):
+        directory_uuid_raw = data[offset:offset + 16]
+        directory_uuid = str(uuid.UUID(bytes=directory_uuid_raw))  # Raw bytes -> UUID 형식으로 변환
+        directories_array.append(directory_uuid)
+        offset += 16
 
     # Tagged Fields Count (Varint)
     tagged_fields_count, bytes_consumed = parse_varint(data[offset:])
@@ -238,12 +307,20 @@ def parse_value(data, offset=0):
     # Return parsed value as a dictionary
     return {
         "frame_version": frame_version,
-        "type": record_type,
-        "version": record_version,
-        "topic_name": topic_name,
+        "record_type": record_type,
+        "record_version": record_version,
+        "partition_id": partition_id,
         "topic_uuid": topic_uuid,
+        "replica_array": replica_array,
+        "isr_array": isr_array,
+        "removing_array": removing_array,
+        "adding_array": adding_array,
+        "leader": leader,
+        "leader_epoch": leader_epoch,
+        "partition_epoch": partition_epoch,
+        "directories_array": directories_array,
         "tagged_fields_count": tagged_fields_count,
-        "next_offset": offset  # For continuing after this value
+        "next_offset": offset  # Offset for further parsing
     }
 
 def parse_header_request(header_request):
