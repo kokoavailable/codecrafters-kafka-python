@@ -21,10 +21,11 @@ def parse_metadata_log(log_path, topic_name):
                 batch_length = struct.unpack(">i", batch_length_data)[0]
 
                 record_batch_data = f.read(batch_length)
+                print(f"2{record_batch_data}")
 
 
                 metadata = parse_record_batch(record_batch_data, topic_name)
-                print(f"2{metadata}")
+                print(f"3{metadata}")
                 if metadata:
                     print(f"Found metadata for topic: {metadata}")
                     return metadata
