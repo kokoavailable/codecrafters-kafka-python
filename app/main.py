@@ -16,9 +16,13 @@ def parse_metadata_log(log_path, topic_name):
                 base_offset = struct.unpack(">q", base_offset_data)[0]
                 
                 batch_length_data = f.read(4)
+                if len(batch_length_data) < 4:
+                    raise ValueError("Unexpected end of file while reading batch length")
                 batch_length = struct.unpack(">i", batch_length_data)[0]
 
                 record_batch_data = f.read(batch_length)
+                if len(record_batch_data) < batch_length:
+                    raise ValueError("Batch length exceeds available data")
 
 
                 metadata = parse_record_batch(record_batch_data, topic_name)
