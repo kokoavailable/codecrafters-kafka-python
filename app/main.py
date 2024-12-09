@@ -20,10 +20,6 @@ def parse_metadata_log(log_path, topic_name):
 
                 record_batch_data = f.read(batch_length)
 
-                if not record_batch_data or len(record_batch_data) < batch_length:
-                    print("Incomplete or corrupted batch, skipping...")
-                    continue
-
 
                 metadata = parse_record_batch(record_batch_data, topic_name)
                 if metadata:
@@ -390,8 +386,30 @@ def create_describe_topic_response(parsed_request, metadata):
         partitions_array = 0
         topic_authorized_operations = int("00000df8", 16)
 
-        body = struct.pack(">i", 0)  # throttle_time_ms
+        body = struct.pack(">B", 0)
+        body += struct.pack(">i", throttle_time_ms)
+        body += struct.pack(">B", array_length + 1)
         body += struct.pack(">h", error_code)
+
+        body += struct.pack(">B", topic_name_length + 1) # topicname
+        body += topic_name.encode("utf-8") # contents
+        body += bytes.fromhex(uuid.replace("-", "")) # topic id
+        body += struct.pack(">B", is_internal)
+        body += struct.pack(">B", partitions_array + 1)
+        body += struct.pack(">i", topic_authorized_operations)
+        body += struct.pack(">B", 0)
+        body += struct.pack(">B", cursor)
+        body += struct.pack(">B", 0)
+    else:
+        throttle_time_ms = 0
+        error_code = 0
+        is_internal = 0
+
+        topic_uuid = metadata["uuid"]
+        partitions = metadata["partitions"]
+        partitions_count = len(partitions)
+
+        topic_authorized_operations = 0 
 
         body = struct.pack(">B", 0)
         body += struct.pack(">i", throttle_time_ms)
@@ -407,6 +425,7 @@ def create_describe_topic_response(parsed_request, metadata):
         body += struct.pack(">B", 0)
         body += struct.pack(">B", cursor)
         body += struct.pack(">B", 0)
+
 
     return body
 
