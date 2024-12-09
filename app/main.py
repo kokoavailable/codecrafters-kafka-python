@@ -208,7 +208,7 @@ def parse_value(data, offset=0):
         dict: Parsed value with details.
     """
     # Frame Version (1 byte)
-    frame_version = struct.unpackdata[offset]
+    frame_version = data[offset]
     offset += 1
 
     # Type (1 byte)
