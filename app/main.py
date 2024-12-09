@@ -88,10 +88,20 @@ def parse_record_batch(data, topic_name):
     while offset < len(data):
         # Parse individual records for topic_name
         record = parse_record(data[offset:])
-        if record and record["topic_name"] == topic_name:
+        if record and record["key"] == topic_name:
             return {
                 "uuid": record["value"]["topic_uuid"],
-                "partitions": [{"partition_index": 0, "error_code": 0}]
+                "partitions": [{
+                    "partition_index": 0,
+                    "error_code": 0,
+                    "leader": 1,
+                    "leader_epoch": 0,
+                    "replicas": [1],
+                    "isr": [1],
+                    "eligible_leader_replicas": [],
+                    "last_known_elr": [],
+                    "offline_replicas": []
+                }]
             }
 
         # Skip to the next record
