@@ -20,6 +20,10 @@ def parse_metadata_log(log_path, topic_name):
 
                 record_batch_data = f.read(batch_length)
 
+                if not record_batch_data or len(record_batch_data) < batch_length:
+                    print("Incomplete or corrupted batch, skipping...")
+                    continue
+
 
                 metadata = parse_record_batch(record_batch_data, topic_name)
                 if metadata:
