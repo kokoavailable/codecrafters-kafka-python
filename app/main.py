@@ -11,6 +11,7 @@ def parse_metadata_log(log_path, topic_name):
     try:
         with open(log_path, "rb") as f:
             while True:
+                print(f"1{topic_name}")
                 base_offset_data = f.read(8)
                 
                 base_offset = struct.unpack(">q", base_offset_data)[0]
