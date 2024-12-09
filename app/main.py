@@ -16,6 +16,7 @@ def parse_metadata_log(log_path, topic_name):
                 base_offset = struct.unpack(">q", base_offset_data)[0]
                 
                 batch_length_data = f.read(4)
+                
                 batch_length = struct.unpack(">i", batch_length_data)[0]
 
                 record_batch_data = f.read(batch_length)
@@ -23,6 +24,7 @@ def parse_metadata_log(log_path, topic_name):
 
                 metadata = parse_record_batch(record_batch_data, topic_name)
                 if metadata:
+                    print(f"Found metadata for topic: {metadata}")
                     return metadata
 
     except FileNotFoundError:
