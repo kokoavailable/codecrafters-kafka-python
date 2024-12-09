@@ -481,7 +481,7 @@ async def handle_client(reader, writer):
                 metadata_log_path = "/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log"
                 metadata = parse_metadata_log(metadata_log_path, topic_name)
 
-                body = create_describe_topic_response(topic_name, metadata)
+                body = create_describe_topic_response(parsed_request, metadata)
             
             elif api_key == 18:
                 body = create_api_version_response(api_version)
