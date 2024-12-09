@@ -490,6 +490,7 @@ async def handle_client(reader, writer):
             if api_key == 75:
                 parsed_request = parse_describe_topic_request(body_data)
                 topic_name = parsed_request["topic_name"]
+                print(topic_name)
             
                 metadata_log_path = "/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log"
                 metadata = parse_metadata_log(metadata_log_path, topic_name)
