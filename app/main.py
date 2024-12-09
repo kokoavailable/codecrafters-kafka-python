@@ -362,6 +362,8 @@ def parse_describe_topic_request(body_request):
     # 토픽 배열 크기 읽기 
     # buffer = body_request[offset:offset+1]
     array_length = struct.unpack(">B", body_request[offset+1:offset+2])[0] - 1
+
+
     topic_name_length = struct.unpack(">B", body_request[offset+2:offset+3])[0] - 1
     offset += 3
     topic_name = body_request[offset:offset + topic_name_length].decode("utf-8")
@@ -483,6 +485,7 @@ async def handle_client(reader, writer):
             api_key = common_data["api_key"]
             api_version = common_data["api_version"]
             correlation_id = common_data["correlation_id"]
+            print(api_key)
 
             if api_key == 75:
                 parsed_request = parse_describe_topic_request(body_data)
