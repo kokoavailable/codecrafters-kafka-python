@@ -24,6 +24,7 @@ def parse_metadata_log(log_path, topic_name):
 
 
                 metadata = parse_record_batch(record_batch_data, topic_name)
+                print(f"2{metadata}")
                 if metadata:
                     print(f"Found metadata for topic: {metadata}")
                     return metadata
