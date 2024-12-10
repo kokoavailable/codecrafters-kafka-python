@@ -97,7 +97,7 @@ def parse_record_batch(data, topic_name):
 
         # Parse the individual record
         record = parse_record(record_data)
-        if record and record["key"] == topic_name:
+        if record and record["value"]["topic_name"] == topic_name:
             return {
                 "uuid": record["value"]["topic_uuid"],
                 "partitions": [{
