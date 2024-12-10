@@ -88,9 +88,15 @@ def parse_record_batch(data, topic_name):
     offset += 4
 
     # Parse Records
-    while offset < len(data):
-        # Parse individual records for topic_name
-        record = parse_record(data[offset:])
+    for _ in range(record_length):
+        record_length, bytes_consumed = parse_varint(data[offset:])
+        offset += bytes_consumed  # Consume bytes used by the varint
+
+        # Extract the individual record data
+        record_data = data[offset:offset + record_length]
+
+        # Parse the individual record
+        record = parse_record(record_data)
         if record and record["key"] == topic_name:
             return {
                 "uuid": record["value"]["topic_uuid"],
@@ -136,18 +142,13 @@ def parse_varint(data):
         # 다음 바이트 처리를 위해 7비트씩 이동
         shift += 7
 
-    raise ValueError("Varint parsing error: incomplete data")    
-
+    raise ValueError("Varint parsing error: incomplete data")
 
 def parse_record(data):
     """
     Parses an individual Kafka Record.
     """
     offset = 0
-
-    # Record Length (varint)
-    record_length, bytes_consumed = parse_varint(data[offset:])
-    offset += bytes_consumed
 
     # Attributes (1 byte)
     attributes = data[offset]
@@ -175,11 +176,17 @@ def parse_record(data):
     value_length, bytes_consumed = parse_varint(data[offset:])
     offset += bytes_consumed
 
+    # Frame version (1 byte)
+    frame_version = data[offset]
+    offset += 1
+
+    # Type (1 byte)
+    type = data[offset]
+    offset += 1
+
     # Value (nullable, length = value_length bytes)
-    value = None
-    if value_length > 0:
-        value = parse_value(data[offset:offset + value_length], offset)
-        offset = value["next_offset"]  # Update offset after parsing
+    value = parse_value(data[offset:offset + value_length])
+    offset = value["next_offset"]  # Update offset after parsing
 
     # Headers Array Count (Varint)
     header_count, bytes_consumed = parse_varint(data[offset:])
@@ -202,7 +209,6 @@ def parse_record(data):
         offset += header_value_length
 
     return {
-        "record_length": record_length,
         "attributes": attributes,
         "timestamp_delta": timestamp_delta,
         "offset_delta": offset_delta,
@@ -210,25 +216,36 @@ def parse_record(data):
         "value": value,
         "next_offset": offset  # For parsing the next record
     }
+   
+def parse_topic_value(data):
+    offset = 0
 
-def parse_value(data, offset=0):
-    """
-    Parses the Value (Topic Record) from the Kafka Record.
-
-    Args:
-        data (bytes): The binary data containing the value.
-        offset (int): The starting offset of the value in the data.
-
-    Returns:
-        dict: Parsed value with details.
-    """
-    # Frame Version (1 byte)
-    frame_version = data[offset]
+    version = data[offset]
     offset += 1
 
-    # Type (1 byte)
-    record_type = data[offset]
-    offset += 1
+    name_length, consumed = parse_varint(data[offset:])
+    offset += consumed
+
+    topic_name = data[offset:offset + name_length].decode("utf-8")
+    offset += name_length
+
+    topic_uuid_raw = data[offset:offset + 16]
+    topic_uuid = str(uuid.UUID(bytes=topic_uuid_raw))
+    offset += 16
+
+    tagged_fields_count, consumed = parse_varint(data[offset:])
+    offset += consumed
+
+    return {
+        "version": version,
+        "topic_name": topic_name,
+        "topic_uuid": topic_uuid,
+        "tagged_fields_count": tagged_fields_count,
+        "next_offset": offset  # Offset for further parsing
+    }
+
+def parse_partition_value(data):
+    offset = 0
 
     # Version (1 byte)
     record_version = data[offset]
@@ -321,8 +338,6 @@ def parse_value(data, offset=0):
 
     # Return parsed value as a dictionary
     return {
-        "frame_version": frame_version,
-        "record_type": record_type,
         "record_version": record_version,
         "partition_id": partition_id,
         "topic_uuid": topic_uuid,
@@ -337,6 +352,56 @@ def parse_value(data, offset=0):
         "tagged_fields_count": tagged_fields_count,
         "next_offset": offset  # Offset for further parsing
     }
+
+def parse_feature_value(data):
+    offset = 0
+
+    version = data[offset]
+    offset += 1
+
+    name_length, consumed = parse_varint(data[offset:])
+    offset += consumed
+
+    name = data[offset:offset + name_length].decode("utf-8")
+    offset += name_length # the length of the name is always length - 1.
+
+    feature_level = struct.unpack(">h", data[offset:offset + 2])[0]
+    offset += 2
+
+    tagged_fields_count, consumed = parse_varint(data[offset:])
+    offset += consumed
+
+    return {
+        "version": version,
+        "name": name,
+        "feature_level": feature_level,
+        "tagged_fields_count": tagged_fields_count,
+        "next_offset": offset  # Offset for further parsing
+    }
+
+def parse_value(data):
+    offset = 0
+
+    # Frame Version (1 byte)
+    frame_version = data[offset]
+    offset += 1
+
+    # Type (1 byte)
+    record_type = data[offset]
+    offset += 1
+
+    if record_type == 12:
+        parsed_value = parse_feature_value(data[offset:])
+    elif record_type == 2:
+        parsed_value = parse_topic_value(data[offset:])
+    elif record_type == 3:
+        parsed_value = parse_partition_value(data[offset:])
+    else:
+        raise ValueError(f"Unknown record type: {record_type}")
+                         
+    parsed_value["next_offset"] = offset + parsed_value.get("next_offset", 0)
+    return parsed_value
+
 
 def parse_header_request(header_request):
     """
